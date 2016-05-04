@@ -196,9 +196,11 @@ static inline bool Node_valid(const Node * const node) {
 static bool in_range(const Node * const n, const Point * const p) {
     register float64_t bound = n->length * 0.5;
     register uint64_t i;
-    for (i = 0; i < D; i++)
-        if ((n->center.data[i] - bound > p->data[i]) || (n->center.data[i] + bound <= p->data[i]))
+    for (i = 0; i < D; i++) {
+        if ((n->center.data[i] - bound > p->data[i]) || (n->center.data[i] + bound <= p->data[i])) {
             return false;
+        }
+    }
     return true;
 }
 
@@ -219,8 +221,9 @@ static bool in_range(const Node * const n, const Point * const p) {
 static uint64_t get_quadrant(const Point * const origin, const Point * const p) {
     register uint64_t i;
     uint64_t quadrant = 0;
-    for (i = 0; i < D; i++)
+    for (i = 0; i < D; i++) {
         quadrant |= ((p->data[i] >= origin->data[i] - PRECISION) & 1) << i;
+    }
     return quadrant;
 }
 
@@ -238,8 +241,9 @@ static uint64_t get_quadrant(const Point * const origin, const Point * const p) 
 static Point get_new_center(const Node * const node, const uint64_t quadrant) {
     Point p;
     register uint64_t i;
-    for (i = 0; i < D; i++)
+    for (i = 0; i < D; i++) {
         p.data[i] = node->center.data[i] + (((quadrant >> i) & 1) - 0.5) * 0.5 * node->length;
+    }
     return p;
 }
 
@@ -257,8 +261,9 @@ static inline void Node_string(const Node * const node, char * const buffer) {
     Point_string(&node->center, center_buffer);
 
     char down_buffer[65] = "(nil)";
-    if (NULL != node->down)
+    if (NULL != node->down) {
         sprintf(down_buffer, "%llu", (unsigned long long)node->down->id);
+    }
 
     sprintf(buffer, "Node{id = %llu, is_square = %s, length = %lf, center = %s, down = %s",
         (unsigned long long)node->id, (node->is_square ? "YES" : "NO"),
@@ -267,10 +272,11 @@ static inline void Node_string(const Node * const node, char * const buffer) {
     uint64_t i;
     char child_buffer[33] = "(nil)";
     for (i = 0; i < (1LL << D); i++) {
-        if (NULL != node->children[i])
+        if (NULL != node->children[i]) {
             sprintf(child_buffer, "%llu", (unsigned long long)node->children[i]->id);
-        else
+        } else {
             sprintf(child_buffer, "(nil)");
+        }
         sprintf(buffer + strlen(buffer), ", children[%llu] = %s",
             (unsigned long long)i, child_buffer);
     }
@@ -304,8 +310,9 @@ static void print(const Node * const n) {
             (n->is_square ? "YES" : "NO"),
             (unsigned long long)n->length, pbuf, n->down);
         uint64_t i;
-        for (i = 0; i < (1LL << D); i++)
+        for (i = 0; i < (1LL << D); i++) {
             printf(", children[%llu] = %p", (unsigned long long)i, n->children[i]);
+        }
     }
     printf("\n");
 }

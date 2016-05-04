@@ -8,6 +8,13 @@ Auxilliary functions to help facilitate testing
 #include "types.h"
 #include "Point.h"
 
+typedef enum {ALL, PASSING, FAILING, NONE, ERROR} ASSERT_STATUS;
+static ASSERT_STATUS ASSERTIONS_STATUS = ALL;
+
+#define setAssertions(status) set_assertions(status)
+
+static inline void set_assertions(const ASSERT_STATUS status) { ASSERTIONS_STATUS = status; }
+
 static uint64_t TOTAL_ASSERTIONS = 0, PASSED_ASSERTIONS = 0;
 
 #define assertLong(expected, actual, text) assert_long(__FILE__, __LINE__, expected, actual, text)
@@ -17,64 +24,84 @@ static uint64_t TOTAL_ASSERTIONS = 0, PASSED_ASSERTIONS = 0;
 #define assertPoint(expected, actual, text) assert_point(__FILE__, __LINE__, expected, actual, text)
 #define assertError(text) assert_error(__FILE__, __LINE__, text)
 
+static inline bool display_assert(const bool equals) {
+    return ALL == ASSERTIONS_STATUS ||
+        PASSING == ASSERTIONS_STATUS && equals ||
+        FAILING == ASSERTIONS_STATUS && !equals;
+}
+
 static inline void assert_long(char *file, int line, long long expected, long long actual, char *text) {
-    printf("%s: line %4d: assert(%s == %lld)...", file, line, text, expected);
-    fflush(stdout);
-    if (actual != expected)
-        printf("was actually %lld...", actual);
-    printf("%s\n", actual == expected ? "\033[0;32mOK\033[m" : "\033[1;31mFAILED\033[m");
+    if (display_assert(actual == expected)) {
+        printf("%s: line %4d: assert(%s == %lld)...", file, line, text, expected);
+        fflush(stdout);
+        if (actual != expected) {
+            printf("was actually %lld...", actual);
+        }
+        printf("%s\n", actual == expected ? "\033[0;32mOK\033[m" : "\033[1;31mFAILED\033[m");
+    }
 
     TOTAL_ASSERTIONS++;
     PASSED_ASSERTIONS += actual == expected;
 }
 
 static inline void assert_double(char *file, int line, float64_t expected, float64_t actual, char *text) {
-    printf("%s: line %4d: assert(%s == %lf)...", file, line, text, expected);
-    fflush(stdout);
-    if (actual != expected)
-        printf("was actually %lf...", actual);
-    printf("%s\n", actual == expected ? "\033[0;32mOK\033[m" : "\033[1;31mFAILED\033[m");
+    if (display_assert(actual == expected)) {
+        printf("%s: line %4d: assert(%s == %lf)...", file, line, text, expected);
+        fflush(stdout);
+        if (actual != expected) {
+            printf("was actually %lf...", actual);
+        }
+        printf("%s\n", actual == expected ? "\033[0;32mOK\033[m" : "\033[1;31mFAILED\033[m");
+    }
 
     TOTAL_ASSERTIONS++;
     PASSED_ASSERTIONS += actual == expected;
 }
 
 static inline void assert_true(char *file, int line, bool actual, char *text) {
-    printf("%s: line %4d: assert(%s == true)...", file, line, text);
-    fflush(stdout);
-    printf("%s\n", actual == true ? "\033[0;32mOK\033[m" : "\033[1;31mFAILED\033[m");
+    if (display_assert(actual == true)) {
+        printf("%s: line %4d: assert(%s == true)...", file, line, text);
+        fflush(stdout);
+        printf("%s\n", actual == true ? "\033[0;32mOK\033[m" : "\033[1;31mFAILED\033[m");
+    }
 
     TOTAL_ASSERTIONS++;
     PASSED_ASSERTIONS += actual == true;
 }
 
 static inline void assert_false(char *file, int line, bool actual, char *text) {
-    printf("%s: line %4d: assert(%s == false)...", file, line, text);
-    fflush(stdout);
-    printf("%s\n", actual == false ? "\033[0;32mOK\033[m" : "\033[1;31mFAILED\033[m");
+    if (display_assert(actual == false)) {
+        printf("%s: line %4d: assert(%s == false)...", file, line, text);
+        fflush(stdout);
+        printf("%s\n", actual == false ? "\033[0;32mOK\033[m" : "\033[1;31mFAILED\033[m");
+    }
 
     TOTAL_ASSERTIONS++;
     PASSED_ASSERTIONS += actual == false;
 }
 
 static inline void assert_point(char *file, int line, Point expected, Point actual, char *text) {
-    char buffer[1000];
-    Point_string(&expected, buffer);
-    printf("%s: line %4d: assert(%s == %s)...", file, line, text, buffer);
-    fflush(stdout);
     bool equals = Point_equals(&actual, &expected);
-    if (!equals) {
-        Point_string(&actual, buffer);
-        printf("was actually %s...", buffer);
+    if (display_assert(Point_equals(&actual, &expected))) {
+        char buffer[1000];
+        Point_string(&expected, buffer);
+        printf("%s: line %4d: assert(%s == %s)...", file, line, text, buffer);
+        fflush(stdout);
+        if (!equals) {
+            Point_string(&actual, buffer);
+            printf("was actually %s...", buffer);
+        }
+        printf("%s\n", equals ? "\033[0;32mOK\033[m" : "\033[1;31mFAILED\033[m");
     }
-    printf("%s\n", equals ? "\033[0;32mOK\033[m" : "\033[1;31mFAILED\033[m");
 
     TOTAL_ASSERTIONS++;
     PASSED_ASSERTIONS += equals;
 }
 
 static inline void assert_error(char *file, int line, char *text) {
-    printf("%s: line %4d: assert(%s)...\033[1;31mFAILED\033[m\n", file, line, text);
+    if (display_assert(false)) {
+        printf("%s: line %4d: assert(%s)...\033[1;31mFAILED\033[m\n", file, line, text);
+    }
 
     TOTAL_ASSERTIONS++;
 }

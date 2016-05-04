@@ -20,20 +20,23 @@ extern void Point_string(const Point*, char*);
 static Point uniform_point(float64_t value) {
     float64_t coords[D];
     uint64_t i;
-    for (i = 0; i < D; i++)
+    for (i = 0; i < D; i++) {
         coords[i] = value;
+    }
     return Point_from_array(coords);
 }
 
 void test_sizes() {
-    printf("dimensions        = %lu\n", (unsigned long)D);
-    printf("sizeof(Quadtree)  = %lu\n", sizeof(Quadtree));
-    printf("sizeof(Node)      = %lu\n", sizeof(Node));
-    printf("sizeof(bool)      = %lu\n", sizeof(bool));
-    printf("sizeof(uint64_t)  = %lu\n", sizeof(uint64_t));
-    printf("sizeof(Node*)     = %lu\n", sizeof(Node*));
-    printf("sizeof(float64_t) = %lu\n", sizeof(float64_t));
-    printf("sizeof(Point)     = %lu\n", sizeof(Point));
+    if (messagesOn()) {
+        printf("dimensions        = %lu\n", (unsigned long)D);
+        printf("sizeof(Quadtree)  = %lu\n", sizeof(Quadtree));
+        printf("sizeof(Node)      = %lu\n", sizeof(Node));
+        printf("sizeof(bool)      = %lu\n", sizeof(bool));
+        printf("sizeof(uint64_t)  = %lu\n", sizeof(uint64_t));
+        printf("sizeof(Node*)     = %lu\n", sizeof(Node*));
+        printf("sizeof(float64_t) = %lu\n", sizeof(float64_t));
+        printf("sizeof(Point)     = %lu\n", sizeof(Point));
+    }
 
     start_test("Quadtree size");
 
@@ -132,8 +135,9 @@ void test_get_quadrant() {
     Point point2 = uniform_point(-1);
 
     for (i = 0; i < (1LL << D); i++) {
-        for (j = 0; j < D; j++)
+        for (j = 0; j < D; j++) {
             point2.data[j] = 2 * ((i >> j) & 1) - 1.0;
+        }
         Point_string(&point1, origin_buffer);
         Point_string(&point2, point_buffer);
         sprintf(buffer, "get_quadrant(%s, %s)", origin_buffer, point_buffer);
@@ -160,8 +164,9 @@ void test_get_new_center() {
     sprintf(node1_buffer + strlen(node1_buffer), ", length = %lf}", length1);
 
     for (i = 0; i < (1LL << D); i++) {
-        for (j = 0; j < D; j++)
+        for (j = 0; j < D; j++) {
             point2.data[j] = ((i >> j) & 1) - 0.5;
+        }
         sprintf(buffer, "get_new_center(%s, %llu)", node1_buffer, (unsigned long long)i);
         assertPoint(point2, get_new_center(node1, i), buffer);
     }
@@ -180,8 +185,9 @@ void test_get_new_center() {
     sprintf(node3_buffer + strlen(node3_buffer), ", length = %lf}", length3);
 
     for (i = 0; i < (1LL << D); i++) {
-        for (j = 0; j < D; j++)
+        for (j = 0; j < D; j++) {
             point4.data[j] = 2.0 * ((i >> j) & 1);
+        }
         sprintf(buffer, "get_new_center(%s, %llu)", node3_buffer, (unsigned long long)i);
         assertPoint(point4, get_new_center(node3, i), buffer);
     }
@@ -330,8 +336,9 @@ void test_quadtree_add() {
     Point point6 = uniform_point(2);
 
     for (i = 0; i < (1LL << D); i++) {
-        for (j = 0; j < D; j++)
+        for (j = 0; j < D; j++) {
             point6.data[j] = 2 * ((i >> j) & 1) - 1.0;
+        }
         Point_string(&point6, point_buffer);
         sprintf(buffer, "addition of out-of-bounds %s into %s", point_buffer, tree_buffer);
         assertTrue(Quadtree_add(tree1, point6), buffer);
@@ -645,21 +652,190 @@ void test_quadtree_remove() {
 }
 
 void test_randomized() {
+    char buffer[256 + 30 * D];
+    char tree_buffer[128 + 15 * D], point_buffer[15 * D];
+    uint64_t i, j;
+
+    start_test("10 random points, all within bounds");
+
+    Point point1 = uniform_point(1);
+    float64_t length1 = 2;
+    Quadtree *tree1 = Quadtree_init(length1, point1);
+
+    Quadtree_string(tree1, tree_buffer);
+
+    Point points1[10];
+    // Points are constructed to not coincide.
+    for (i = 0; i < 10; i++) {
+        for (j = 0; j< D; j++) {
+            float64_t value = 2 * random() - 1;
+            float64_t sign = (value < 0 ? -1 : 1);
+            points1[i].data[j] = (value + sign * i) * length1 / 20.1;
+        }
+        Point_string(&points1[i], point_buffer);
+        sprintf(buffer, "point %s successfully added to %s", point_buffer, tree_buffer);
+        assertTrue(Quadtree_add(tree1, points1[i]), buffer);
+    }
+    for (i = 0; i < 10; i++) {
+        Point_string(&points1[i], point_buffer);
+        sprintf(buffer, "point %s exists in %s", point_buffer, tree_buffer);
+        assertTrue(Quadtree_search(tree1, points1[i]), buffer);
+    }
+    for (i = 0; i < 10; i++) {
+        Point_string(&points1[9 - i], point_buffer);
+        sprintf(buffer, "point %s successfully removed from %s", point_buffer, tree_buffer);
+        assertTrue(Quadtree_remove(tree1, points1[9 - i]), buffer);
+    }
+    for (i = 0; i < 10; i++) {
+        Point_string(&points1[i], point_buffer);
+        sprintf(buffer, "point %s no longer exists in %s", point_buffer, tree_buffer);
+        assertFalse(Quadtree_search(tree1, points1[i]), buffer);
+    }
+
+    end_test();
+
+    Quadtree_free(tree1);
+
+    start_test("100 random points within bounds, 100 random points out of bounds");
+
+    Point point2 = uniform_point(1);
+    float64_t length2 = 2;
+    Quadtree *tree2 = Quadtree_init(length2, point2);
+
+    Quadtree_string(tree2, tree_buffer);
+
+    Point points2[200];
+    // Points are constructed to not coincide.
+    for (i = 0; i < 100; i++) {
+        for (j = 0; j< D; j++) {
+            float64_t value = 2 * random() - 1;
+            float64_t sign = (value < 0 ? -1 : 1);
+            points2[i].data[j] = (value + sign * i) * length2 / 200.1;
+        }
+        Point_string(&points2[i], point_buffer);
+        sprintf(buffer, "point %s successfully added to %s", point_buffer, tree_buffer);
+        assertTrue(Quadtree_add(tree2, points2[i]), buffer);
+    }
+    for (i = 100; i < 200; i++) {
+        for (j = 0; j< D; j++) {
+            float64_t value = 2 * random() - 1;
+            float64_t sign = (value < 0 ? -1 : 1);
+            points2[i].data[j] = (value + sign * i) * length2 / 199.9;
+        }
+        Point_string(&points2[i], point_buffer);
+        sprintf(buffer, "point %s successfully added to %s", point_buffer, tree_buffer);
+        assertFalse(Quadtree_add(tree2, points2[i]), buffer);
+    }
+    for (i = 0; i < 100; i++) {
+        Point_string(&points2[i], point_buffer);
+        sprintf(buffer, "point %s exists in %s", point_buffer, tree_buffer);
+        assertTrue(Quadtree_search(tree2, points2[i]), buffer);
+    }
+    for (i = 100; i < 200; i++) {
+        Point_string(&points2[i], point_buffer);
+        sprintf(buffer, "point %s absent from %s", point_buffer, tree_buffer);
+        assertFalse(Quadtree_search(tree2, points2[i]), buffer);
+    }
+    for (i = 0; i < 100; i++) {
+        Point_string(&points2[99 - i], point_buffer);
+        sprintf(buffer, "point %s successfully removed from %s", point_buffer, tree_buffer);
+        assertTrue(Quadtree_remove(tree2, points2[99 - i]), buffer);
+    }
+    for (i = 0; i < 100; i++) {
+        Point_string(&points2[i], point_buffer);
+        sprintf(buffer, "point %s no longer exists in %s", point_buffer, tree_buffer);
+        assertFalse(Quadtree_search(tree2, points2[i]), buffer);
+    }
+
+    end_test();
+
+    Quadtree_free(tree2);
+
 }
 
-void test_performance() {
+/*
+ * prepare_assertions
+ *
+ * length - the number of arguments to process
+ * args - the string arguments to process
+ *
+ * Returns whether to abort running the program due to parameter errors.
+ */
+static bool prepare_assertions(const int length, char * const args[]) {
+    uint64_t i, j;
+    for (i = 0; i < length; i++) {
+        for (j = 0; args[i][j] != '\0'; j++) {
+            if ('=' == args[i][j]) {
+                args[i][j] = '\0';
+                j++;
+                break;
+            }
+        }
+        char type[100] = "", value[100] = "";
+        sscanf(args[i], "%s", type);
+        sscanf(args[i] + j, "%s", value);
+
+        ASSERT_STATUS status = ERROR;
+        if (!strcmp("ALL", value)) {
+            status = ALL;
+        } else if (!strcmp("PASSING", value)) {
+            status = PASSING;
+        } else if (!strcmp("FAILING", value)) {
+            status = FAILING;
+        } else if (!strcmp("NONE", value)) {
+            status = NONE;
+        }
+
+        if (!strcmp("ASSERTS", type)) {
+            if (ERROR != status) {
+                setAssertions(status);
+            }
+        } else if (!strcmp("TESTS", type)) {
+            if (ERROR != status) {
+                setTests(status);
+            }
+        } else if (!strcmp("SUITES", type)) {
+            if (ERROR != status) {
+                setSuites(status);
+            }
+        } else if (!strcmp("MESSAGES", type)) {
+            if (ALL == status || NONE == status) {
+                setMessages(status);
+            } else {
+                status = ERROR;
+            }
+        } else {
+            status = ALL;
+        }
+
+        // If status is still ERROR, then we have an invalid input for a valid type.
+        if (ERROR == status) {
+            printf("Invalid status for type %s. Valid statuss are: ALL,%s NONE.\n",
+                type, strcmp("MESSAGES", type) ? " PASSING, FAILING," : "");
+            return true;
+        }
+    }
+    return false;
 }
 
 int main(int argc, char *argv[]) {
     setbuf(stdout, 0);
+
+    printf("Turn reports on and off: [ASSERTS | TESTS | SUITES]=[ALL | PASSING | FAILING | NONE]\nTurn messages on and off: MESSAGES=[ALL | NONE]\n");
+
+    // Set assertions settings
+    if (prepare_assertions(argc - 1, argv + 1)) {
+        return 1;
+    }
+    
     mtrace();
     Marsaglia_srand(time(NULL));
     printf("[Beginning tests]\n");
 
-    // initialize RLU
+    // Initialize RLU
     RLU_INIT(RLU_TYPE_FINE_GRAINED, 8);
     rlu_self = (rlu_thread_data_t*)malloc(sizeof(*rlu_self));
-    
+
     start_suite(test_sizes, "Struct sizes");
     start_suite(test_in_range, "in_range");
     start_suite(test_get_quadrant, "get_quadrant");
@@ -669,10 +845,9 @@ int main(int argc, char *argv[]) {
     start_suite(test_quadtree_add, "Quadtree_add");
     start_suite(test_quadtree_search, "Quadtree_search");
     start_suite(test_quadtree_remove, "Quadtree_remove");
-    /*start_suite(test_randomized, "Randomized (in-environment)");
-    //start_suite(test_performance, "Performance tests");*/
+    start_suite(test_randomized, "Randomized input");
 
-    // end RLU
+    // End RLU
     free(rlu_self);
 
     printf("\n[Ending tests]\n");
@@ -684,5 +859,7 @@ int main(int argc, char *argv[]) {
     printf("\033[3;32mPASSED SUITES: %4lld\033\[m | \033[3;32mPASSED TESTS: %4lld\033\[m | \033\[3;32mPASSED ASSERTIONS: %5lld\033\[m\n", passed_suites(), passed_tests(), passed_assertions());
     printf("\033[3;31mFAILED SUITES: %4lld\033\[m | \033[3;31mFAILED TESTS: %4lld\033\[m | \033\[3;31mFAILED ASSERTIONS: %5lld\033\[m\n", total_suites() - passed_suites(), total_tests() - passed_tests(), total_assertions() - passed_assertions());
     printf("=============================================\n");
+
+    printf("Turn reports on and off: [ASSERTS | TESTS | SUITES]=[ALL | PASSING | FAILING | NONE]\nTurn messages on and off: MESSAGES=[ALL | NONE]\n");
     return 0;
 }
