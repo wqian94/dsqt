@@ -146,14 +146,17 @@ uint32_t* Marsaglia_parallel_init(const uint64_t vid) {
  * If the parallel infrastructure has not been started, this returns the global seed.
  */
 uint32_t* Marsaglia_parallel_get() {
-    if (seeds == NULL)
+    if (seeds == NULL) {
         return &Marsaglia_seed;
+    }
 
     uint64_t self = (uint64_t)pthread_self();
     register uint64_t i;
-    for (i = 0; i < Marsaglia_nthreads; i++)
-        if (pthread_ids[i] == self)
+    for (i = 0; i < Marsaglia_nthreads; i++) {
+        if (pthread_ids[i] == self) {
             return seeds + i;
+        }
+    }
     return NULL;
 }
 

@@ -90,8 +90,9 @@ void Point_copy(const Point *from, Point *to);
 static void Point_string(const Point *p, char *buffer) {
     sprintf(buffer, "Point(%lf", p->data[0]);
     register uint64_t i;
-    for (i = 1; i < D; i++)
+    for (i = 1; i < D; i++) {
         sprintf(buffer + strlen(buffer), ", %lf", p->data[i]);
+    }
     sprintf(buffer + strlen(buffer), ")");
 }
 

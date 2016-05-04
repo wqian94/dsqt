@@ -106,11 +106,11 @@ static inline void assert_error(char *file, int line, char *text) {
     TOTAL_ASSERTIONS++;
 }
 
-static long long passed_assertions() {
+static unsigned long long passed_assertions() {
     return PASSED_ASSERTIONS;
 }
 
-static long long total_assertions() {
+static unsigned long long total_assertions() {
     return TOTAL_ASSERTIONS;
 }
 

@@ -29,8 +29,9 @@ Node* Node_init(const float64_t length, const Point center) {
 #endif
     };
     uint64_t i;
-    for (i = 0; i < (1LL << D); i++)
+    for (i = 0; i < (1LL << D); i++) {
         node->children[i] = NULL;
+    }
     return node;
 }
 

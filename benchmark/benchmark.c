@@ -59,8 +59,9 @@ void* execute(void *op) {
     const uint64_t npoints = min(2 * packet->active_size, 1000);
     Point *pbuffer = (Point*)malloc(sizeof(*pbuffer) * npoints);  // ``active" points
     uint64_t head = 0, tail = 0;
-    for (head = 0; head < npoints; head++)
+    for (head = 0; head < npoints; head++) {
         pbuffer[head] = packet->actives[head];
+    }
 
     // set up RLU
     rlu_self = (rlu_thread_data_t*)malloc(sizeof(*rlu_self));
@@ -149,8 +150,9 @@ void test_random(const uint64_t seconds) {
     // initialize the root of the tree
     float64_t length = 1LL << 32;
     Point root_point;
-    for (i = 0; i < D; i++)
+    for (i = 0; i < D; i++) {
         root_point.data[i] = 0;
+    }
     TYPE *root = CONSTRUCTOR(length, root_point);
 
     test_rand_off();
@@ -201,8 +203,9 @@ void test_random(const uint64_t seconds) {
     Point *initial_actives = (Point*)malloc(sizeof(*initial_actives) * initial_population);
     for (i = 0; i < initial_population; i++) {
         register uint64_t j;
-        for (j = 0; j < D; j++)
+        for (j = 0; j < D; j++) {
             initial_actives[i].data[j] = (random() - 0.5) * length;
+        }
         INSERT(root, initial_actives[i]);
     }
     RLU_THREAD_FINISH(rlu_self);
@@ -248,11 +251,13 @@ void test_random(const uint64_t seconds) {
     */
 
     // start threads
-    for (i = 0; i < nthreads; i++)
+    for (i = 0; i < nthreads; i++) {
         pthread_create(threads + i, NULL, execute, (void*)(packets + i));
+    }
 
-    for (i = 0; i < nthreads; i++)
+    for (i = 0; i < nthreads; i++) {
         while (!packets[i].ready);
+    }
 
     STARTED = false;
     ACTIVE = true;
