@@ -106,7 +106,7 @@ main-%:
 .PHONY: test-%-correctness
 test-%-correctness: CFLAGS += -O0 -DDEBUG
 test-%-correctness: TESTFLAG += -DQUADTREE_TEST
-test-%-correctness:
+test-%-correctness: test.c
 	$(MAKE) -e run-test OBJS="$(ALL_OBJS) $*/Quadtree.o" MTRACE=1 DEBUG=1
 
 .PHONY: test-%-performance
@@ -118,7 +118,7 @@ test-%-performance:
 .PHONY: test-%
 test-%:
 	$(MAKE) -e test-$*-correctness
-	$(MAKE) -e test-$*-performance
+	#$(MAKE) -e test-$*-performance
 
 .PHONY: benchmark-%-O0
 benchmark-%-O0:

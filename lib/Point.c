@@ -6,7 +6,7 @@ Point implementation
 
 Point Point_from_array(float64_t data[D]) {
     Point p;
-    memmove(&p.data, data, sizeof(data));
+    memmove(&p.data, data, sizeof(p.data));
     return p;
 }
 

@@ -68,24 +68,48 @@ int test_rand() {
 }
 
 static uint64_t TOTAL_TESTS = 0, PASSED_TESTS = 0;
+static uint64_t TOTAL_SUITES = 0, PASSED_SUITES = 0;
+static uint64_t PREV_TEST_TOTAL_ASSERTS = 0, PREV_TEST_PASSED_ASSERTS = 0;
 
-void start_test(void (*func)(), const char *suite_name) {
+void start_suite(void (*func)(), const char *suite_name) {
     uint64_t prev_total_asserts = total_assertions();
     uint64_t prev_passed_asserts = passed_assertions();
-    printf("\n===Testing %s===\n", suite_name);
+    printf("\n===Suite: %s===\n", suite_name);
     func();
     printf("\n");
     test_rand_close();
-    TOTAL_TESTS++;
-    PASSED_TESTS += (passed_assertions() - prev_passed_asserts) == (total_assertions() - prev_total_asserts);
+    TOTAL_SUITES++;
+    PASSED_SUITES += (passed_assertions() - prev_passed_asserts) == (total_assertions() - prev_total_asserts);
 }
 
-long long total_tests() {
+void start_test(const char *test_name) {
+    PREV_TEST_TOTAL_ASSERTS = total_assertions();
+    PREV_TEST_PASSED_ASSERTS = passed_assertions();
+    if (strlen(test_name) > 0)
+        printf("\n--Test: %s--\n", test_name);
+}
+
+void end_test() {
+    TOTAL_TESTS++;
+    PASSED_TESTS += (passed_assertions() - PREV_TEST_PASSED_ASSERTS) == (total_assertions() - PREV_TEST_TOTAL_ASSERTS);
+    PREV_TEST_TOTAL_ASSERTS = 0;
+    PREV_TEST_PASSED_ASSERTS = 0;
+}
+
+unsigned long long total_tests() {
     return TOTAL_TESTS;
 }
 
-long long passed_tests() {
+unsigned long long passed_tests() {
     return PASSED_TESTS;
+}
+
+unsigned long long total_suites() {
+    return TOTAL_SUITES;
+}
+
+unsigned long long passed_suites() {
+    return PASSED_SUITES;
 }
 
 #endif

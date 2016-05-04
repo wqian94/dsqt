@@ -6,7 +6,6 @@ Some utility functions
 #define UTIL_H
 
 #include <pthread.h>
-#include <stdint.h>
 
 #include "types.h"
 

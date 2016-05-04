@@ -23,12 +23,14 @@ Node* Node_init(const float64_t length, const Point center) {
         .is_square = false,
         .length = length,
         .center = center,
-        .right = NULL,
         .down = NULL
 #ifdef QUADTREE_TEST
         ,.id = QUADTREE_NODE_COUNT++
 #endif
     };
+    uint64_t i;
+    for (i = 0; i < (1LL << D); i++)
+        node->children[i] = NULL;
     return node;
 }
 
@@ -44,14 +46,18 @@ Quadtree* Quadtree_init(const float64_t length, const Point center) {
 }
 
 /*
- * Node_free
+ * Node_free_internal
  *
- * Frees the memory used to represent this node.
+ * Frees the memory used to represent this node, inlined for internal use.
  *
  * node - the node to be freed
  */
-static inline void Node_free(Node * const node) {
+static inline void Node_free_internal(Node * const node) {
     free((void*)node);
+}
+
+void Node_free(Node * const node) {
+    Node_free_internal(node);
 }
 
 // TODO: implement

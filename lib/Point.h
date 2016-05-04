@@ -61,7 +61,7 @@ Point Point_from_array(float64_t data[D]);
  * a - the point to compare against
  * b - the point to compare
  *
- * Returns a value <0 if a < b, =0 if a == b, and >0 if a > b.
+ * Returns a value < 0 if a < b, = 0 if a == b, and > 0 if a > b.
  */
 int8_t Point_compare(const Point *a, const Point *b);
 
@@ -90,10 +90,9 @@ void Point_copy(const Point *from, Point *to);
 static void Point_string(const Point *p, char *buffer) {
     sprintf(buffer, "Point(%lf", p->data[0]);
     register uint64_t i;
-    for (i = 1; i < D; i++) {
-        sprintf(buffer, "%s, %lf", buffer, p->data[i]);
-    }
-    sprintf(buffer, "%s)", buffer);
+    for (i = 1; i < D; i++)
+        sprintf(buffer + strlen(buffer), ", %lf", p->data[i]);
+    sprintf(buffer + strlen(buffer), ")");
 }
 
 #endif
