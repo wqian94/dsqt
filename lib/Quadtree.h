@@ -98,7 +98,7 @@ Node* Node_init(const float64_t length, const Point center);
  *
  * node - the node to be freed
  */
-void Node_free(Node * const node);
+void Node_free(const Node * const node);
 #endif
 
 /*

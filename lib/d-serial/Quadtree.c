@@ -53,11 +53,11 @@ Quadtree* Quadtree_init(const float64_t length, const Point center) {
  *
  * node - the node to be freed
  */
-static inline void Node_free_internal(Node * const node) {
+static inline void Node_free_internal(const Node * const node) {
     free((void*)node);
 }
 
-void Node_free(Node * const node) {
+void Node_free(const Node * const node) {
     Node_free_internal(node);
 }
 
@@ -77,7 +77,37 @@ bool Quadtree_remove(Quadtree * const node, const Point p) {
 }
 
 // TODO: implement
-QuadtreeFreeResult Quadtree_free(Quadtree * const root) {
+/*
+ * Quadtree_free_internal
+ *
+ * result - the result object to record data onto
+ * node - the node to recursively free
+ */
+void Quadtree_free_internal(QuadtreeFreeResult * result, const Node * const node) {
+    uint64_t i;
+    bool is_leaf = true;
+    for (i = 0; i < (1LL << D); i++) {
+        if (Node_valid(node->children[i])) {
+            is_leaf = false;
+            Quadtree_free_internal(result, node->children[i]);
+        }
+    }
+    Node_free_internal(node);
+    result->total++;
+    result->leaf += is_leaf;
+}
+
+QuadtreeFreeResult Quadtree_free(Quadtree * const tree) {
     QuadtreeFreeResult result = (QuadtreeFreeResult){ .total = 0, .leaf = 0, .levels = 0 };
+
+    while (Node_valid(tree->root)) {
+        Node *root = tree->root;
+        tree->root = root->down;
+        Quadtree_free_internal(&result, root);
+        result.levels++;
+    }
+
+    free(tree);
+
     return result;
 }
