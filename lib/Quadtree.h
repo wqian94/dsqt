@@ -116,43 +116,43 @@ Quadtree* Quadtree_init(const float64_t length, const Point center);
 /*
  * Quadtree_search
  *
- * Searches for p in the quadtree, within a certain error tolerance.
+ * Searches for the point in the quadtree, within a certain error tolerance.
  *
  * tree - the quadtree to query
- * p - the point we're searching for
+ * point - the point we're searching for
  *
- * Returns whether p is in the quadtree.
+ * Returns whether point is in the quadtree.
  */
-bool Quadtree_search(const Quadtree * const tree, const Point p);
+bool Quadtree_search(const Quadtree * const tree, const Point point);
 
 /*
  * Quadtree_add
  *
  * Adds p to the quadtree.
  *
- * Will not add duplicate points to the tree, as defined by Point_equals. If p is already in the
- * tree, this function will return false.
+ * Will not add duplicate points to the tree, as defined by Point_equals. If the point is already
+ * in the tree, this function will return false.
  *
  * tree - the quadtree to add the point to
- * p - the point being added
+ * point - the point being added
  *
  * Returns whether the add was successful. False indicates either an error, or that the node is
  * already in the tree.
  */
-bool Quadtree_add(Quadtree * const tree, const Point p);
+bool Quadtree_add(Quadtree * const tree, const Point point);
 
 /*
  * Quadtree_remove
  *
- * Removes p from the quadtree.
+ * Removes the point from the quadtree.
  *
  * tree - the tree to remove from
- * p - the point being removed
+ * point - the point being removed
  *
  * Returns whether the remove was successful: false typically indicates that the node wasn't in the
  * tree to begin with.
  */
-bool Quadtree_remove(Quadtree * const tree, const Point p);
+bool Quadtree_remove(Quadtree * const tree, const Point point);
 
 
 /*
@@ -239,12 +239,12 @@ static uint64_t get_quadrant(const Point * const origin, const Point * const p) 
  * Returns the center point for the given quadrant of node.
  */
 static Point get_new_center(const Node * const node, const uint64_t quadrant) {
-    Point p;
+    Point point;
     register uint64_t i;
     for (i = 0; i < D; i++) {
-        p.data[i] = node->center.data[i] + (((quadrant >> i) & 1) - 0.5) * 0.5 * node->length;
+        point.data[i] = node->center.data[i] + (((quadrant >> i) & 1) - 0.5) * 0.5 * node->length;
     }
-    return p;
+    return point;
 }
 
 #ifdef QUADTREE_TEST

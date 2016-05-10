@@ -23,7 +23,7 @@ static Point uniform_point(float64_t value) {
     for (i = 0; i < D; i++) {
         coords[i] = value;
     }
-    return Point_from_array(coords);
+    return *(Point*)coords;
 }
 
 void test_sizes() {
@@ -147,6 +147,54 @@ void test_get_quadrant() {
     end_test();
 }
 
+void test_ordering() {
+    char buffer[256 + 30 * D], origin_buffer[15 * D], point_buffer[15 * D], other_buffer[15 * D];
+    uint64_t i, j, k;
+
+    start_test("ordering of point pairs along unit hypercube");
+
+    Point point1 = uniform_point(0);
+    Point point2 = uniform_point(-1);
+    Point point3 = uniform_point(-1);
+
+    for (i = 0; i < (1LL << D); i++) {
+        for (j = 0; j < i; j++) {
+            for (k = 0; k < D; k++) {
+                point2.data[k] = 2 * ((i >> k) & 1) - 1.0;
+                point3.data[k] = 2 * ((j >> k) & 1) - 1.0;
+            }
+            Point_string(&point1, origin_buffer);
+            Point_string(&point2, point_buffer);
+            Point_string(&point3, other_buffer);
+
+            const uint64_t quadrant2 = get_quadrant(&point1, &point2);
+            const uint64_t quadrant3 = get_quadrant(&point1, &point3);
+
+            sprintf(buffer, "(quadrant %llu <= quadrant %llu) == (%s <= %s)",
+                (unsigned long long)quadrant2, (unsigned long long)quadrant3,
+                point_buffer, other_buffer);
+            assertTrue((quadrant2 <= quadrant3) == (Point_compare(&point2, &point3) <= 0), buffer);
+
+            sprintf(buffer, "(quadrant %llu >= quadrant %llu) == (%s >= %s)",
+                (unsigned long long)quadrant2, (unsigned long long)quadrant3,
+                point_buffer, other_buffer);
+            assertTrue((quadrant2 >= quadrant3) == (Point_compare(&point2, &point3) >= 0), buffer);
+
+            sprintf(buffer, "(quadrant %llu <= quadrant %llu) == (%llu <= %llu)",
+                (unsigned long long)quadrant2, (unsigned long long)quadrant3,
+                (unsigned long long)i, (unsigned long long)j);
+            assertTrue((quadrant2 <= quadrant3) == (i <= j), buffer);
+
+            sprintf(buffer, "(quadrant %llu >= quadrant %llu) == (%llu >= %llu)",
+                (unsigned long long)quadrant2, (unsigned long long)quadrant3,
+                (unsigned long long)i, (unsigned long long)j);
+            assertTrue((quadrant2 >= quadrant3) == (i >= j), buffer);
+        }
+    }
+
+    end_test();
+}
+
 void test_get_new_center() {
     char buffer[256 + 15 * D], node1_buffer[128 + 15 * D], node3_buffer[128 + 15 * D];
     uint64_t i, j;
@@ -251,14 +299,20 @@ void test_quadtree_create() {
     sprintf(buffer, "height of %s", tree_buffer);
     assertLong(0, tree1->height, buffer);
 
-    sprintf(buffer, "NULL root of %s", tree_buffer);
-    assertTrue(NULL == tree1->root, buffer);
-
     sprintf(buffer, "length of %s", tree_buffer);
     assertDouble(length1, tree1->length, buffer);
 
     sprintf(buffer, "center of %s", tree_buffer);
     assertPoint(point1, tree1->center, buffer);
+
+    sprintf(buffer, "non-NULL root of %s", tree_buffer);
+    assertFalse(NULL == tree1->root, buffer);
+
+    sprintf(buffer, "length of root of %s", tree_buffer);
+    assertDouble(length1, tree1->root->length, buffer);
+
+    sprintf(buffer, "center of root of %s", tree_buffer);
+    assertPoint(point1, tree1->root->center, buffer);
 
     end_test();
 
@@ -335,13 +389,14 @@ void test_quadtree_add() {
 
     Point point6 = uniform_point(2);
 
-    for (i = 0; i < (1LL << D); i++) {
+    // i = 0 corresponds to ``lower" corner in each dimension, which is actually in-bounds.
+    for (i = 1; i < (1LL << D); i++) {
         for (j = 0; j < D; j++) {
             point6.data[j] = 2 * ((i >> j) & 1) - 1.0;
         }
         Point_string(&point6, point_buffer);
         sprintf(buffer, "addition of out-of-bounds %s into %s", point_buffer, tree_buffer);
-        assertTrue(Quadtree_add(tree1, point6), buffer);
+        assertFalse(Quadtree_add(tree1, point6), buffer);
     }
 
     end_test();
@@ -670,7 +725,7 @@ void test_randomized() {
         for (j = 0; j< D; j++) {
             float64_t value = 2 * random() - 1;
             float64_t sign = (value < 0 ? -1 : 1);
-            points1[i].data[j] = (value + sign * i) * length1 / 20.1;
+            points1[i].data[j] = 1 + (value + sign * i) * length1 / 20.1;
         }
         Point_string(&points1[i], point_buffer);
         sprintf(buffer, "point %s successfully added to %s", point_buffer, tree_buffer);
@@ -710,7 +765,7 @@ void test_randomized() {
         for (j = 0; j< D; j++) {
             float64_t value = 2 * random() - 1;
             float64_t sign = (value < 0 ? -1 : 1);
-            points2[i].data[j] = (value + sign * i) * length2 / 200.1;
+            points2[i].data[j] = 1 + (value + sign * i) * length2 / 200.1;
         }
         Point_string(&points2[i], point_buffer);
         sprintf(buffer, "point %s successfully added to %s", point_buffer, tree_buffer);
@@ -720,7 +775,7 @@ void test_randomized() {
         for (j = 0; j< D; j++) {
             float64_t value = 2 * random() - 1;
             float64_t sign = (value < 0 ? -1 : 1);
-            points2[i].data[j] = (value + sign * i) * length2 / 199.9;
+            points2[i].data[j] = 1 + (value + sign * i) * length2 / 199.9;
         }
         Point_string(&points2[i], point_buffer);
         sprintf(buffer, "point %s successfully added to %s", point_buffer, tree_buffer);
@@ -839,6 +894,7 @@ int main(int argc, char *argv[]) {
     start_suite(test_sizes, "Struct sizes");
     start_suite(test_in_range, "in_range");
     start_suite(test_get_quadrant, "get_quadrant");
+    start_suite(test_ordering, "Point ordering");
     start_suite(test_get_new_center, "get_new_center");
     start_suite(test_node_create, "Node_init");
     start_suite(test_quadtree_create, "Quadtree_init");
