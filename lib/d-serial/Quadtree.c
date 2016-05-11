@@ -85,35 +85,34 @@ void Node_free(const Node * const node) {
 
 typedef enum {SUCCESS, FAILURE, EXISTENT, NONEXISTENT} Result;
 
-// TODO: implement
 /*
  * Quadtre_search_internal
  *
  * Does a horizontal traversal of the tree to find the square that should contain the target point,
  * which either contains the point, or serves as a drop-down location to the next level.
  *
- * root - the root of the subtree to start searching at
+ * node - the root-most level node in the tree to start searching at
  * point - the point to search for
  *
  * Returns a result indicating whether the point is found.
  */
-Result Quadtree_search_internal(const Node * const root, const Point * point) {
+Result Quadtree_search_internal(const Node * const node, const Point * point) {
     // Check whether the root is valid and if the point is contained in the root.
-    if (!valid_node(root) || !in_range(root, point)) {
+    if (!valid_node(node) || !in_range(node, point)) {
         return FAILURE;
     }
 
     // Horizontally traverse to find the square that would contain the point if it exists.
-    Node *parent = NULL, *node = (Node*)root;
+    Node *parent = NULL, *target = (Node*)node;
     uint8_t quadrant;
     do {
-        quadrant = get_quadrant(&node->center, point);
-        parent = node;
-        node = node->children[quadrant];
-    } while (valid_node(node) && node->is_square && in_range(node, point));
+        quadrant = get_quadrant(&target->center, point);
+        parent = target;
+        target = target->children[quadrant];
+    } while (valid_node(target) && target->is_square && in_range(target, point));
 
     // Return EXISTENT if the point is found.
-    if (valid_node(node) && Point_equals(&node->center, point)) {
+    if (valid_node(target) && Point_equals(&target->center, point)) {
         return EXISTENT;
     }
 
@@ -137,7 +136,7 @@ bool Quadtree_search(const Quadtree * const node, const Point point) {
  * the node representing the point one level lower is given by down. Promoting where everything
  * down is NULL is equivalent to inserting the point fresh at the level of the root.
  *
- * root - the root of the tree to promote to, must be square and contains the point in down
+ * root - the root of the tree to promote to, must be square and contains the point
  * head - the SkipListNode with the promoted node as its next
  * treedown - the Node of the promoting point that is one level lower, must not be square
  * down - the SkipListNode down for the promoted node
@@ -301,8 +300,13 @@ Result Quadtree_add_internal(SkipListNode * const node, SkipListNode * const hea
     }
     if (3 == gap_width) {
         // Promote the target node.
+        SkipListNode * promote_root = root;
+        if (in_range((Node*)parent, &center_node->treenode.center)) {
+            promote_root = parent;
+        }
         const Result success =
-            promote(parent, prev, center_node, prev_down->next, &center_node->treenode.center);
+            promote(promote_root, prev, center_node, prev_down->next,
+            &center_node->treenode.center);
         if (SUCCESS != success) {
             return success;
         }
@@ -335,8 +339,243 @@ bool Quadtree_add(Quadtree * const node, const Point point) {
 }
 
 // TODO: implement
+/*
+ * demote
+ *
+ * Demotes a node from the current level. The tree is rooted at root, and the previous node in the
+ * skip list is given by head. If deleting a node causes its parent to have < 2 children and it is
+ * a non-root square, then we collapse the square as well, resetting the ``grandparent" node to
+ * point to the sibling of the demoted node.
+ *
+ * root - the root of the tree to demote from, must be square and contains the point
+ * head - the SkipListNode with the demoted node as its next
+ * node - the SkipListNode node for the demoted node
+ * point - the Point being demoted
+ *
+ * Returns a Result detailing the success of the demotion.
+ */
+Result demote(SkipListNode * const root, SkipListNode * const head, const Point * const point) {
+    // Check to make sure that root is valid, is square, and contains the point.
+    if (!valid_node(root) || !root->treenode.is_square || !in_range(&root->treenode, point)) {
+        return FAILURE;
+    }
+
+    // Check to make sure that head is valid and that the point comes after.
+    if (!valid_node(head)) {
+        return FAILURE;
+    }
+
+    // Find parent and grandparent from tree.
+    SkipListNode *grandparent = NULL, *parent = NULL, *node = root;
+    uint8_t quadrant = 0, parent_quadrant = 0;
+    do {
+        parent_quadrant = quadrant;
+        quadrant = get_quadrant(&node->treenode.center, point);
+        grandparent = parent;
+        parent = node;
+        node = (SkipListNode*)node->treenode.children[quadrant];
+    } while (valid_node(node) && node->treenode.is_square && in_range(&node->treenode, point));
+
+    // Find previous and next in skip list.
+    SkipListNode *prev = NULL, *next = head;
+    do {
+        prev = next;
+        next = next->next;
+    } while (next != node);  // We expect to always find the node in the list.
+    next = next -> next;
+
+    // Deletion.
+
+    // Determine whether the parent node should be collapsed.
+    bool collapse = false;
+    SkipListNode *sibling = NULL;
+    uint64_t i;
+    for (i = 0; i < (1LL << D); i++) {
+        SkipListNode * const child = (SkipListNode*)parent->treenode.children[i];
+
+        if (!valid_node(child) || child == node) {  // Ignore if child is not a valid sibling.
+            continue;
+        } else if (!valid_node(sibling)) {  // On first sibling, track sibling and flag collapse.
+            sibling = child;
+            collapse = true;
+        } else {  // On future siblings, deflag collapse and break.
+            collapse = false;
+            break;
+        }
+    }
+    collapse = collapse && valid_node(grandparent);  // Collapse only if parent is not a root node.
+
+    // Detach node from parent.
+    parent->treenode.children[quadrant] = NULL;
+
+    if (collapse) {
+        // Reset grandparent's pointer to parent to now point to the sibling.
+        grandparent->treenode.children[parent_quadrant] = (Node*)sibling;
+
+        // Free parent node.
+        Node_free_internal(parent);
+    }
+
+    // Reset pointers of previous and next node in skip list.
+    prev->next = next;
+    if (valid_node(next)) {
+        next->down = node->down;
+    }
+
+    // Free target node.
+    Node_free_internal(node);
+
+    // Return.
+    return SUCCESS;
+}
+
+/*
+ * gap_length
+ *
+ * Measures the number of nodes between two nodes given, exclusive.
+ *
+ * head - the SkipListNode to start at, must not be NULL
+ * tail - the SkipListNode to end at, may be NULL
+ *
+ * Returns the number of nodes between head and tail, exclusive.
+ */
+uint64_t gap_length(const SkipListNode * const head, const SkipListNode * const tail) {
+    uint64_t gap = 0;
+    SkipListNode *node = head->next;
+    while (valid_node(node) && tail != node) {
+        node = node->next;
+        gap++;
+    }
+    return gap;
+}
+
+/*
+ * Quadtree_remove_internal
+ *
+ * Inserts the target point on the lowest level of the tree. As it progresses, nodes may be
+ * promoted as necessary to preserve the 1-2-3 skip list invariants. Produces a Result.
+ *
+ * grandroot - the parent of root, may be NULL
+ * root - the top-most level tree node of the subtree to delete from
+ * grandhead - the prev of head, may be NULL
+ * head - the top-most level head node of the sublist to delete from
+ * point - the point to delete
+ *
+ * Returns a Result indicating the result of adding the point.
+ */
+Result Quadtree_remove_internal(SkipListNode * const grandroot, SkipListNode * const root,
+        SkipListNode * const grandhead, SkipListNode * const head, const Point * const point) {
+    // Check to make sure root is valid, is square, and contains the node.
+    if (!valid_node(root) || !root->treenode.is_square || !in_range((Node*)root, point)) {
+        return FAILURE;
+    }
+
+    // Horizontally traverse the tree to find the corresponding node.
+    SkipListNode *grandparent = NULL, *parent = grandroot, *node = root;
+    uint64_t quadrant;
+    do {
+        quadrant = get_quadrant(&node->treenode.center, point);
+        grandparent = parent;
+        parent = node;
+        node = (SkipListNode*)node->treenode.children[quadrant];
+    } while (valid_node(node) && node->treenode.is_square && in_range((Node*)node, point));
+
+    // Horizontally traverse the skip list.
+    SkipListNode *prevprev = NULL, *prev = grandhead, *next = head, *nextnext = NULL;
+    do {
+        prevprev = prev;
+        prev = next;
+        next = next->next;
+    } while (valid_node(next) && 0 > Point_compare(&next->treenode.center, point));
+    // If the target point exists on this level, then next must point to the node representing it.
+    if (valid_node(next)) {
+        nextnext = next->next;
+    }
+
+    // If we're at lowest level, node better contain the node we're searching for.
+    if (!valid_node(root->treenode.down)) {
+        if (!valid_node(next) || !Point_equals(&next->treenode.center, point)) {
+            return NONEXISTENT;
+        }
+        return demote(grandparent, prev, point);
+    }
+
+    // We aim to drop into the gap between prev and next.
+
+    SkipListNode *grandroot_down = NULL;
+    if (valid_node(grandroot)) {
+        grandroot_down = (SkipListNode*)grandroot->treenode.down;
+    }
+    SkipListNode *root_down = (SkipListNode*)root->treenode.down;
+    SkipListNode *prev_down = (SkipListNode*)prev->treenode.down;
+    SkipListNode *next_down = NULL;
+    if (valid_node(next)) {
+        next_down = (SkipListNode*)next->treenode.down;
+    }
+    SkipListNode *nextnext_down = NULL;
+    if (valid_node(nextnext)) {
+        nextnext_down = (SkipListNode*)nextnext->treenode.down;
+    }
+    if (!valid_node(prevprev)) {  // If trying to drop into the first gap.
+        // If the gap is == 1, demote next.
+        if (gap_length(prev_down, next_down)) {
+            // If the second gap is >= 2 (> 1), promote the first node in the second gap.
+            if (valid_node(next) && 1 < gap_length(next_down, nextnext_down)) {
+                promote(root, next, next_down->next, next_down->next,
+                    &next_down->next->treenode.center);
+            }
+
+            // Demote next.
+            if (valid_node(next)) {
+                demote(root, prev, &next->treenode.center);
+            }
+        }
+
+        // Drop into gap between prev and next.
+        return Quadtree_remove_internal(grandroot_down, root_down, prev_down, prev_down->next,
+            point);
+    } else {  // Non-first gap.
+        SkipListNode *prevprev_down = (SkipListNode*)prevprev->treenode.down;
+        // If the previous gap is length > 1, promote the last node in that gap.
+        if (1 < gap_length(prevprev_down, prev_down)) {
+            SkipListNode *promote_node = prevprev_down;
+            while (promote_node->next != prev_down) {
+                promote_node = promote_node->next;
+            }
+            promote(root, prevprev, promote_node, promote_node, &promote_node->treenode.center);
+        }
+
+        // Demote prev.
+        demote(root, prevprev, &prev->treenode.center);
+
+        // Drop into gap between prev and next.
+        return Quadtree_remove_internal(grandroot_down, root_down, prev_down, prev_down->next,
+            point);
+    }
+
+    return FAILURE;
+}
+
 bool Quadtree_remove(Quadtree * const node, const Point point) {
-    return false;
+    SkipListNode * const root = (SkipListNode*)node->root;
+
+    const Result result = Quadtree_remove_internal(NULL, root, NULL, root, &point);
+
+    // If two top-most root nodes are both empty, delete the top-most root node.
+    if (valid_node(root->down)) {
+        bool both_empty = true;
+        uint64_t i;
+        for (i = 0; i < (1LL << D); i++) {
+            both_empty = !valid_node(root->treenode.children[i]) &&
+                !valid_node(root->treenode.down->children[i]);
+        }
+        if (both_empty) {
+            node->root = root->treenode.down;
+            Node_free_internal(root);
+        }
+    }
+
+    return SUCCESS == result;
 }
 
 /*
