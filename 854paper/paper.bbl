@@ -1,0 +1,181 @@
+% $ biblatex auxiliary file $
+% $ biblatex bbl format version 2.3 $
+% Do not modify the above lines!
+%
+% This is an auxiliary file used by the 'biblatex' package.
+% This file may safely be deleted. It will be recreated by
+% biber as required.
+%
+\begingroup
+\makeatletter
+\@ifundefined{ver@biblatex.sty}
+  {\@latex@error
+     {Missing 'biblatex' package}
+     {The bibliography requires the 'biblatex' package.}
+      \aftergroup\endinput}
+  {}
+\endgroup
+
+
+\refsection{0}
+  \sortlist{entry}{nty}
+    \entry{cqt}{inproceedings}{}
+      \name{labelname}{1}{}{%
+        {{hash=0baf022eb8cc72dfc1b0195214ba6fd9}{Clarkson}{C\bibinitperiod}{Kenneth\bibnamedelima L.}{K\bibinitperiod\bibinitdelim L\bibinitperiod}{}{}{}{}}%
+      }
+      \name{author}{1}{}{%
+        {{hash=0baf022eb8cc72dfc1b0195214ba6fd9}{Clarkson}{C\bibinitperiod}{Kenneth\bibnamedelima L.}{K\bibinitperiod\bibinitdelim L\bibinitperiod}{}{}{}{}}%
+      }
+      \list{location}{1}{%
+        {El Paso, Texas, USA}%
+      }
+      \list{publisher}{1}{%
+        {ACM}%
+      }
+      \strng{namehash}{0baf022eb8cc72dfc1b0195214ba6fd9}
+      \strng{fullhash}{0baf022eb8cc72dfc1b0195214ba6fd9}
+      \field{sortinit}{C}
+      \field{labeltitle}{Nearest Neighbor Queries in Metric Spaces}
+      \field{booktitle}{Proceedings of the Twenty-ninth Annual ACM Symposium on Theory of Computing}
+      \field{isbn}{0-89791-888-6}
+      \field{series}{STOC '97}
+      \field{title}{Nearest Neighbor Queries in Metric Spaces}
+      \field{year}{1997}
+      \field{pages}{609\bibrangedash 617}
+      \verb{doi}
+      \verb 10.1145/258533.258655
+      \endverb
+      \verb{url}
+      \verb http://doi.acm.org/10.1145/258533.258655
+      \endverb
+    \endentry
+    \entry{sqt}{inproceedings}{}
+      \name{labelname}{3}{}{%
+        {{hash=4f12b592ce9b6b46eaf40b65ed198f41}{Eppstein}{E\bibinitperiod}{David}{D\bibinitperiod}{}{}{}{}}%
+        {{hash=5a0b95fef2629a33091ac55a4ff5f1ed}{Goodrich}{G\bibinitperiod}{Michael\bibnamedelima T.}{M\bibinitperiod\bibinitdelim T\bibinitperiod}{}{}{}{}}%
+        {{hash=a103990f00fcaaa6f0f5392e5390b395}{Sun}{S\bibinitperiod}{Jonathan\bibnamedelima Z.}{J\bibinitperiod\bibinitdelim Z\bibinitperiod}{}{}{}{}}%
+      }
+      \name{author}{3}{}{%
+        {{hash=4f12b592ce9b6b46eaf40b65ed198f41}{Eppstein}{E\bibinitperiod}{David}{D\bibinitperiod}{}{}{}{}}%
+        {{hash=5a0b95fef2629a33091ac55a4ff5f1ed}{Goodrich}{G\bibinitperiod}{Michael\bibnamedelima T.}{M\bibinitperiod\bibinitdelim T\bibinitperiod}{}{}{}{}}%
+        {{hash=a103990f00fcaaa6f0f5392e5390b395}{Sun}{S\bibinitperiod}{Jonathan\bibnamedelima Z.}{J\bibinitperiod\bibinitdelim Z\bibinitperiod}{}{}{}{}}%
+      }
+      \list{location}{1}{%
+        {Pisa, Italy}%
+      }
+      \list{publisher}{1}{%
+        {ACM}%
+      }
+      \strng{namehash}{9ff4e4087fb2e72af8671325ae04148f}
+      \strng{fullhash}{9ff4e4087fb2e72af8671325ae04148f}
+      \field{sortinit}{E}
+      \field{labeltitle}{The Skip Quadtree: A Simple Dynamic Data Structure for Multidimensional Data}
+      \field{booktitle}{Proceedings of the Twenty-first Annual Symposium on Computational Geometry}
+      \field{isbn}{1-58113-991-8}
+      \field{series}{SCG '05}
+      \field{title}{The Skip Quadtree: A Simple Dynamic Data Structure for Multidimensional Data}
+      \field{year}{2005}
+      \field{pages}{296\bibrangedash 305}
+      \verb{doi}
+      \verb 10.1145/1064092.1064138
+      \endverb
+      \verb{url}
+      \verb http://doi.acm.org/10.1145/1064092.1064138
+      \endverb
+      \keyw{approximation algorithm,dynamic data structure,nearest neighbor,octree,point location,quadtree,range,skip quadtree}
+    \endentry
+    \entry{dsl}{inproceedings}{}
+      \name{labelname}{3}{}{%
+        {{hash=dda7b8281701296cb5a2161199324650}{Munro}{M\bibinitperiod}{J.\bibnamedelimi Ian}{J\bibinitperiod\bibinitdelim I\bibinitperiod}{}{}{}{}}%
+        {{hash=7e4493847343619a5f80e364841b40da}{Papadakis}{P\bibinitperiod}{Thomas}{T\bibinitperiod}{}{}{}{}}%
+        {{hash=6a9c16ef79ae932cd7e8bc985da5a937}{Sedgewick}{S\bibinitperiod}{Robert}{R\bibinitperiod}{}{}{}{}}%
+      }
+      \name{author}{3}{}{%
+        {{hash=dda7b8281701296cb5a2161199324650}{Munro}{M\bibinitperiod}{J.\bibnamedelimi Ian}{J\bibinitperiod\bibinitdelim I\bibinitperiod}{}{}{}{}}%
+        {{hash=7e4493847343619a5f80e364841b40da}{Papadakis}{P\bibinitperiod}{Thomas}{T\bibinitperiod}{}{}{}{}}%
+        {{hash=6a9c16ef79ae932cd7e8bc985da5a937}{Sedgewick}{S\bibinitperiod}{Robert}{R\bibinitperiod}{}{}{}{}}%
+      }
+      \list{location}{1}{%
+        {Orlando, Florida, USA}%
+      }
+      \list{publisher}{2}{%
+        {Society for Industrial}%
+        {Applied Mathematics}%
+      }
+      \strng{namehash}{138c8ec5769cc03bfe453bc1d0d93d95}
+      \strng{fullhash}{138c8ec5769cc03bfe453bc1d0d93d95}
+      \field{sortinit}{M}
+      \field{labeltitle}{Deterministic Skip Lists}
+      \field{booktitle}{Proceedings of the Third Annual ACM-SIAM Symposium on Discrete Algorithms}
+      \field{isbn}{0-89791-466-X}
+      \field{series}{SODA '92}
+      \field{title}{Deterministic Skip Lists}
+      \field{year}{1992}
+      \field{pages}{367\bibrangedash 375}
+      \verb{url}
+      \verb http://dl.acm.org/citation.cfm?id=139404.139478
+      \endverb
+    \endentry
+    \entry{qt}{article}{}
+      \name{labelname}{1}{}{%
+        {{hash=dfeb073e535b6d4cdc88118653409e7b}{Orenstein}{O\bibinitperiod}{Jack\bibnamedelima A.}{J\bibinitperiod\bibinitdelim A\bibinitperiod}{}{}{}{}}%
+      }
+      \name{author}{1}{}{%
+        {{hash=dfeb073e535b6d4cdc88118653409e7b}{Orenstein}{O\bibinitperiod}{Jack\bibnamedelima A.}{J\bibinitperiod\bibinitdelim A\bibinitperiod}{}{}{}{}}%
+      }
+      \strng{namehash}{dfeb073e535b6d4cdc88118653409e7b}
+      \strng{fullhash}{dfeb073e535b6d4cdc88118653409e7b}
+      \field{sortinit}{O}
+      \field{labeltitle}{Multidimensional tries used for associative searching}
+      \field{issn}{0020-0190}
+      \field{journaltitle}{Information Processing Letters}
+      \field{number}{4}
+      \field{title}{Multidimensional tries used for associative searching}
+      \field{volume}{14}
+      \field{year}{1982}
+      \field{pages}{150\bibrangedash 157}
+      \verb{doi}
+      \verb http://dx.doi.org/10.1016/0020-0190(82)90027-8
+      \endverb
+      \verb{url}
+      \verb http://www.sciencedirect.com/science/article/pii/0020019082900278
+      \endverb
+      \keyw{tree}
+    \endentry
+    \entry{sl}{article}{}
+      \name{labelname}{1}{}{%
+        {{hash=d2e8bd4544451d3ad099f420ff11a3ed}{Pugh}{P\bibinitperiod}{William}{W\bibinitperiod}{}{}{}{}}%
+      }
+      \name{author}{1}{}{%
+        {{hash=d2e8bd4544451d3ad099f420ff11a3ed}{Pugh}{P\bibinitperiod}{William}{W\bibinitperiod}{}{}{}{}}%
+      }
+      \list{location}{1}{%
+        {New York, NY, USA}%
+      }
+      \list{publisher}{1}{%
+        {ACM}%
+      }
+      \strng{namehash}{d2e8bd4544451d3ad099f420ff11a3ed}
+      \strng{fullhash}{d2e8bd4544451d3ad099f420ff11a3ed}
+      \field{sortinit}{P}
+      \field{labeltitle}{Skip Lists: A Probabilistic Alternative to Balanced Trees}
+      \field{issn}{0001-0782}
+      \field{journaltitle}{Commun. ACM}
+      \field{month}{06}
+      \field{number}{6}
+      \field{title}{Skip Lists: A Probabilistic Alternative to Balanced Trees}
+      \field{volume}{33}
+      \field{year}{1990}
+      \field{pages}{668\bibrangedash 676}
+      \verb{doi}
+      \verb 10.1145/78973.78977
+      \endverb
+      \verb{url}
+      \verb http://doi.acm.org/10.1145/78973.78977
+      \endverb
+      \keyw{data structures,searching,trees}
+    \endentry
+  \endsortlist
+\endrefsection
+\endinput
+
